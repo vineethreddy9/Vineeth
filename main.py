@@ -6,7 +6,7 @@ app = FastAPI()
 
 # ✅ Allow your frontend domain
 origins = [
-    "https://harshaproject.netlify.app",  # Replace with your Netlify URL
+    "charming-malasada-69ad7d.netlify.app",  # Replace with your Netlify URL
     "http://localhost:3000",              # For local testing
 ]
 
