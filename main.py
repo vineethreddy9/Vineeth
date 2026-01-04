@@ -1,30 +1,51 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
-app = FastAPI()
+load_dotenv()
 
-# ✅ Allow your frontend domain
-origins = [
-    "charming-malasada-69ad7d.netlify.app",  # Replace with your Netlify URL
-    "http://localhost:3000",              # For local testing
-]
+app = FastAPI(title="Voice Assistant API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allowed domains
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:5500",
+        "charming-malasada-69ad7d.netlify.app",  # Your current frontend
+        "https://gilded-custard-8db3f1.netlify.app"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],    # GET, POST, etc.
-    allow_headers=["*"],    # Any headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Example request model
+
 class AskRequest(BaseModel):
     text: str
 
+@app.get("/")
+def root():
+    return {"message": "Voice Assistant API is running!"}
+
 @app.post("/ask")
 async def ask_ai(request: AskRequest):
-    user_input = request.text
-    # For now, just echo it or your Perplexity API call
-    reply = f"Echo: {user_input}"
-    return {"reply": reply}
+    try:
+        api_key = os.getenv("PERPLEXITY_API_KEY")
+        if not api_key:
+            return {"error": "PERPLEXITY_API_KEY not set"}
+
+        client = OpenAI(api_key=api_key, base_url="https://api.perplexity.ai")
+        response = client.chat.completions.create(
+            model="sonar-pro",
+            messages=[
+                {"role": "system", "content": "You are a helpful voice assistant."},
+                {"role": "user", "content": request.text}
+            ]
+        )
+        return {"reply": response.choices[0].message.content}
+
+    except Exception as e:
+        return {"error": str(e)}
