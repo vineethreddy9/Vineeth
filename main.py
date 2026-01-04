@@ -14,7 +14,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:5500",
-        "charming-malasada-69ad7d.netlify.app",  # Your current frontend
+        "vineeth-voice-assistant.netlify.app",  # Your current frontend
         "https://gilded-custard-8db3f1.netlify.app"
     ],
     allow_credentials=True,
