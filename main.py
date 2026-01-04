@@ -2,10 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
-from openai import OpenAI
-from dotenv import load_dotenv
-
-load_dotenv()
+import requests
 
 app = FastAPI(title="Voice Assistant API")
 
@@ -28,26 +25,32 @@ def root():
     return {"message": "Voice Assistant API is running!"}
 
 @app.post("/ask")
-async def ask_ai(request: AskRequest):
+def ask_ai(request: AskRequest):
+    api_key = os.getenv("PERPLEXITY_API_KEY")
+
+    if not api_key:
+        return {"error": "PERPLEXITY_API_KEY not set"}
+
     try:
-        api_key = os.getenv("PERPLEXITY_API_KEY")
-        if not api_key:
-            return {"error": "PERPLEXITY_API_KEY not set"}
-
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://api.perplexity.ai"
+        response = requests.post(
+            "https://api.perplexity.ai/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "sonar-pro",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful voice assistant."},
+                    {"role": "user", "content": request.text}
+                ]
+            }
         )
 
-        response = client.chat.completions.create(
-            model="sonar-pro",
-            messages=[
-                {"role": "system", "content": "You are a helpful voice assistant."},
-                {"role": "user", "content": request.text}
-            ]
-        )
+        result = response.json()
+        reply = result["choices"][0]["message"]["content"]
 
-        return {"reply": response.choices[0].message.content}
+        return {"reply": reply}
 
     except Exception as e:
         return {"error": str(e)}
