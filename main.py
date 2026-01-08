@@ -9,7 +9,7 @@ app = FastAPI(title="Voice Assistant API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://vineeth-voice-assistant.netlify.app",
+        "https://vineeth1-voice-assistant.netlify.app",
         "http://localhost:5500"
     ],
     allow_credentials=True,
